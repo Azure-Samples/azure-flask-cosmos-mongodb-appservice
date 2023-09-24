@@ -1,0 +1,45 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-docker-compose
+{
+    "name": "azure_flask_cosmos_mongodb_appservice",
+
+    // Update the 'dockerComposeFile' list if you have more compose files or use different names.
+    // The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
+    "dockerComposeFile": "docker-compose_dev.yml",
+    // The 'service' property is the name of the service for the container that VS Code should
+    // use. Update this value and .devcontainer/docker-compose.yml to the real service name.
+    "service": "app",
+    "shutdownAction": "stopCompose",
+    "workspaceFolder": "/workspace",
+    "forwardPorts": [8000, 27017],
+    "portsAttributes": {
+        "8000": {"label": "frontend web port", "onAutoForward": "notify"},
+        "27017": {"label": "MongoDB Port", "onAutoForward": "silent"}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-bicep",
+                "charliermarsh.ruff",
+                "ms-python.python",
+                "ms-python.black-formatter",
+                "bierner.github-markdown-preview"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false,
+                "files.exclude": {
+                    ".coverage": true,
+                    ".pytest_cache": true,
+                    "__pycache__": true
+                }
+            }
+        }
+    },
+    "features": {
+        "ghcr.io/azure/azure-dev/azd:latest": {},
+    },
+    "postCreateCommand": "pip install -r requirements-dev.in && pip install -e src && python3 -m flask --app src/flaskapp seed --filename src/seed_data.json --drop"
+}
+
