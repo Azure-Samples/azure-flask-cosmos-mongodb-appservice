@@ -1,3 +1,7 @@
+"""
+MongoDB Models for Mongoengine
+"""
+
 from mongoengine import (
     Document,
     EmailField,

@@ -1,3 +1,6 @@
+"""
+Seeder for MongoDB
+"""
 import json
 
 from . import models
