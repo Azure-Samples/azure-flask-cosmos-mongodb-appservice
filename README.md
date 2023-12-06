@@ -45,8 +45,8 @@ python3 -m flask --app src.flaskapp run --reload --port=8000
 2. Install the development requirements:
 
     ```sh
-    python3 -m pip install -r requirements-dev.in
-    playwright install --with-deps
+    python3 -m pip install -r requirements-dev.txt
+    python3 -m playwright install --with-deps
     ```
 
 3. Run the tests:
