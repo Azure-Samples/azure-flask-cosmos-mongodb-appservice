@@ -2,14 +2,15 @@ import os
 
 import click
 import mongoengine as engine
+from azure.monitor.opentelemetry import configure_azure_monitor
 from flask import Flask
-from opencensus.ext.azure.trace_exporter import AzureExporter
-from opencensus.ext.flask.flask_middleware import FlaskMiddleware
-from opencensus.trace.samplers import ProbabilitySampler
 
 
 def create_app(test_config=None):
     # create and configure the app
+    if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+        configure_azure_monitor()
+
     app = Flask(__name__, static_folder="../static", template_folder="../templates")
 
     # Load configuration for prod vs. dev
@@ -18,11 +19,6 @@ def create_app(test_config=None):
         app.config.from_object("flaskapp.config.development")
     else:
         app.config.from_object("flaskapp.config.production")
-        FlaskMiddleware(
-            app,
-            exporter=AzureExporter(connection_string=os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING", None)),
-            sampler=ProbabilitySampler(rate=1.0),
-        )
 
     # Configure the database
     if test_config is not None:
