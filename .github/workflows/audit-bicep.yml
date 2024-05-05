@@ -29,6 +29,9 @@ jobs:
         continue-on-error: true
         with:
           tools: templateanalyzer
+        env:
+          GDN_TEMPLATEANALYZER_VERBOSE: 1
+          GDN_TEMPLATEANALYZER_ANALYZETEMPLATE: infra/main.bicep
 
       - name: Upload alerts to Security tab
         uses: github/codeql-action/upload-sarif@v3
