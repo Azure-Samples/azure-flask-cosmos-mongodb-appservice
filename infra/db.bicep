@@ -9,7 +9,7 @@ param keyVaultName string
 module dbserver 'core/database/cosmos/mongo/cosmos-mongo-db.bicep' = {
   name: name
   params: {
-    accountName: '${prefix}-mongodb'
+    accountName: '${take(prefix, 36)}-mongodb' // Max 44 characters
     location: location
     databaseName: dbserverDatabaseName
     tags: tags
