@@ -190,7 +190,7 @@ module cosmosPostgres 'db/cosmos-postgres.bicep' = if (DATABASE_RESOURCE == 'cos
   }
 }
 
-module postgresAddon 'db/postgres-addon.bicep' = if (DATABASE_RESOURCE == 'postgres-addon') {
+module postgresAddon 'db/postgres-addon.bicep' = if(DATABASE_RESOURCE == 'postgres-addon' && PROJECT_HOST == 'aca') {
   name: 'postgresAddon'
   scope: resourceGroup
   params: {
