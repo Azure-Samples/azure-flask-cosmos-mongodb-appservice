@@ -71,17 +71,16 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:0.1.8' = {
           {
             service: 'Microsoft.KeyVault'
           }
+          {
+            service: 'Microsoft.AzureCosmosDB'
+          }
         ]
       }
       {
         addressPrefix: '10.0.4.0/23'
         name: 'db'
         tags: tags
-        serviceEndpoints: [
-          {
-            service: 'Microsoft.AzureCosmosDB'
-          }
-        ]
+        serviceEndpoints: []
       }
     ]
   }
@@ -179,6 +178,7 @@ module cosmosMongoDb 'db/cosmos-mongodb.bicep' = if (DATABASE_RESOURCE == 'cosmo
     keyvaultName: keyVault.outputs.name
     privateDNSZoneResourceId: privateDnsZone.outputs.resourceId
     subnetResourceId: virtualNetwork.outputs.subnetResourceIds[2]
+    applicationSubnetResourceId: virtualNetwork.outputs.subnetResourceIds[1]
   }
 }
 
