@@ -38,7 +38,7 @@ module databaseAccount 'br/public:avm/res/document-db/database-account:0.5.6' = 
         privateDnsZoneResourceIds: [
           privateDNSZoneResourceId
         ]
-        service: 'Sql'
+        service: 'MongoDB'
         subnetResourceId: subnetResourceId
         tags: tags
       }
