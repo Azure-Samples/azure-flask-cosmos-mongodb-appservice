@@ -77,6 +77,11 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:0.1.8' = {
         addressPrefix: '10.0.4.0/23'
         name: 'db'
         tags: tags
+        serviceEndpoints: [
+          {
+            service: 'Microsoft.AzureCosmosDB'
+          }
+        ]
       }
     ]
   }
