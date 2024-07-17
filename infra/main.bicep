@@ -22,6 +22,9 @@ var resourceToken = toLower(uniqueString(subscription().id, name, location))
 var prefix = '${name}-${resourceToken}'
 var tags = { 'azd-env-name': name }
 
+var DATABASE_RESOURCE = 'cosmos-mongodb'
+var PROJECT_HOST = 'appservice'
+
 var secrets = [
   {
     name: 'SECRETKEY'
@@ -153,8 +156,6 @@ module roleAssignment 'core/security/role.bicep' = {
   }
 }
 
-var DATABASE_RESOURCE = 'cosmos-mongodb'
-
 module cosmosMongoDb 'db/cosmos-mongodb.bicep' = if (DATABASE_RESOURCE == 'cosmos-mongodb') {
   name: 'cosmosMongoDb'
   scope: resourceGroup
@@ -217,6 +218,20 @@ module monitoring 'core/monitor/monitoring.bicep' = {
     applicationInsightsDashboardName: '${prefix}-appinsights-dashboard'
     applicationInsightsName: '${prefix}-appinsights'
     logAnalyticsName: '${take(prefix, 50)}-loganalytics' // Max 63 chars
+  }
+}
+
+// Container apps host (including container registry)
+module containerApps 'core/host/container-apps.bicep' = if (PROJECT_HOST == 'aca') {
+  name: 'container-apps'
+  scope: resourceGroup
+  params: {
+    name: 'app'
+    location: location
+    containerAppsEnvironmentName: '${prefix}-containerapps-env'
+    containerRegistryName: '${replace(prefix, '-', '')}registry'
+    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceId
+    virtualNetworkSubnetId: virtualNetwork.outputs.subnetResourceIds[1]
   }
 }
 
