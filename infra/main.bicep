@@ -190,18 +190,6 @@ module cosmosPostgres 'db/cosmos-postgres.bicep' = if (DATABASE_RESOURCE == 'cos
   }
 }
 
-module postgresAddon 'db/postgres-addon.bicep' = if(DATABASE_RESOURCE == 'postgres-addon' && PROJECT_HOST == 'aca') {
-  name: 'postgresAddon'
-  scope: resourceGroup
-  params: {
-    name: 'dbserver'
-    location: location
-    tags: tags
-    prefix: prefix
-    containerAppsEnvironmentName: containerApps.outputs.environmentName
-  }
-}
-
 module postgresFlexible 'db/postgres-flexible.bicep' = if (DATABASE_RESOURCE == 'postgres-flexible') {
   name: 'postgresFlexible'
   scope: resourceGroup
@@ -225,20 +213,6 @@ module monitoring 'core/monitor/monitoring.bicep' = {
     applicationInsightsDashboardName: '${prefix}-appinsights-dashboard'
     applicationInsightsName: '${prefix}-appinsights'
     logAnalyticsName: '${take(prefix, 50)}-loganalytics' // Max 63 chars
-  }
-}
-
-// Container apps host (including container registry)
-module containerApps 'core/host/container-apps.bicep' = if (PROJECT_HOST == 'aca') {
-  name: 'container-apps'
-  scope: resourceGroup
-  params: {
-    name: 'app'
-    location: location
-    containerAppsEnvironmentName: '${prefix}-containerapps-env'
-    containerRegistryName: '${replace(prefix, '-', '')}registry'
-    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceId
-    virtualNetworkSubnetId: virtualNetwork.outputs.subnetResourceIds[1]
   }
 }
 
