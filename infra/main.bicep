@@ -9,6 +9,8 @@ param name string
 @description('Primary location for all resources')
 param location string
 
+var dbserverPassword = '' // Only used by the linter
+
 @secure()
 @description('Secret Key')
 param secretKey string
@@ -151,16 +153,57 @@ module roleAssignment 'core/security/role.bicep' = {
   }
 }
 
-module db 'db.bicep' = {
-  name: 'db'
+var DATABASE_RESOURCE = 'cosmos-mongodb'
+
+module cosmosMongoDb 'db/cosmos-mongodb.bicep' = if (DATABASE_RESOURCE == 'cosmos-mongodb') {
+  name: 'cosmosMongoDb'
   scope: resourceGroup
   params: {
     name: 'dbserver'
     location: location
     tags: tags
     prefix: prefix
-    keyVaultName: keyVault.outputs.name
     dbserverDatabaseName: 'relecloud'
+    sqlRoleAssignmentPrincipalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    keyvaultName: keyVault.outputs.name
+  }
+}
+
+module cosmosPostgres 'db/cosmos-postgres.bicep' = if (DATABASE_RESOURCE == 'cosmos-postgres') {
+  name: 'cosmosPostgres'
+  scope: resourceGroup
+  params: {
+    name: 'dbserver'
+    location: location
+    tags: tags
+    prefix: prefix
+    dbserverDatabaseName: 'relecloud'
+    dbserverPassword: dbserverPassword
+  }
+}
+
+module postgresAddon 'db/postgres-addon.bicep' = if (DATABASE_RESOURCE == 'postgres-addon') {
+  name: 'postgresAddon'
+  scope: resourceGroup
+  params: {
+    name: 'dbserver'
+    location: location
+    tags: tags
+    prefix: prefix
+    containerAppsEnvironmentName: containerApps.outputs.environmentName
+  }
+}
+
+module postgresFlexible 'db/postgres-flexible.bicep' = if (DATABASE_RESOURCE == 'postgres-flexible') {
+  name: 'postgresFlexible'
+  scope: resourceGroup
+  params: {
+    name: 'dbserver'
+    location: location
+    tags: tags
+    prefix: prefix
+    dbserverDatabaseName: 'relecloud'
+    dbserverPassword: dbserverPassword
   }
 }
 
@@ -187,6 +230,7 @@ module web 'web.bicep' = {
     tags: tags
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     keyVaultName: keyVault.outputs.name
+
     appCommandLine: 'entrypoint.sh'
     pythonVersion: '3.12'
     virtualNetworkSubnetId: virtualNetwork.outputs.subnetResourceIds[1]
