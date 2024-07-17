@@ -73,6 +73,11 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:0.1.8' = {
           }
         ]
       }
+      {
+        addressPrefix: '10.0.4.0/23'
+        name: 'db'
+        tags: tags
+      }
     ]
   }
 }
@@ -167,6 +172,8 @@ module cosmosMongoDb 'db/cosmos-mongodb.bicep' = if (DATABASE_RESOURCE == 'cosmo
     dbserverDatabaseName: 'relecloud'
     sqlRoleAssignmentPrincipalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
     keyvaultName: keyVault.outputs.name
+    privateDNSZoneResourceId: privateDnsZone.outputs.resourceId
+    subnetResourceId: virtualNetwork.outputs.subnetResourceIds[2]
   }
 }
 
