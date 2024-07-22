@@ -11,10 +11,6 @@ param location string
 
 var dbserverPassword = '' // Only used by the linter
 
-@secure()
-@description('Secret Key')
-param secretKey string
-
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
@@ -26,10 +22,6 @@ var DATABASE_RESOURCE = 'cosmos-mongodb'
 var PROJECT_HOST = 'appservice'
 
 var secrets = [
-  {
-    name: 'SECRETKEY'
-    value: secretKey
-  }
 ]
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {

@@ -41,7 +41,6 @@ module web 'core/host/appservice.bicep' = {
     appSettings: {
       APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
       RUNNING_IN_PRODUCTION: 'true'
-      SECRET_KEY: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=SECRETKEY)'
       AZURE_COSMOS_CONNECTION_STRING: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=AZURE-COSMOS-CONNECTION-STRING)'
     }
     virtualNetworkSubnetId: virtualNetworkSubnetId
