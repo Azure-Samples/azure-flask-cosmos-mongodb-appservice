@@ -9,9 +9,7 @@ param name string
 @description('Primary location for all resources')
 param location string
 
-@secure()
-@description('Secret Key')
-param secretKey string
+var dbserverPassword = '' // Only used by the linter
 
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
@@ -20,11 +18,10 @@ var resourceToken = toLower(uniqueString(subscription().id, name, location))
 var prefix = '${name}-${resourceToken}'
 var tags = { 'azd-env-name': name }
 
+var DATABASE_RESOURCE = 'cosmos-mongodb'
+var PROJECT_HOST = 'appservice'
+
 var secrets = [
-  {
-    name: 'SECRETKEY'
-    value: secretKey
-  }
 ]
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -66,17 +63,26 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:0.1.8' = {
           {
             service: 'Microsoft.KeyVault'
           }
+          {
+            service: 'Microsoft.AzureCosmosDB'
+          }
         ]
+      }
+      {
+        addressPrefix: '10.0.4.0/23'
+        name: 'db'
+        tags: tags
+        serviceEndpoints: []
       }
     ]
   }
 }
 
-module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.3.1' = {
-  name: 'privateDnsZoneDeployment'
+module keyvaultPrivateDnsZone 'br/public:avm/res/network/private-dns-zone:0.3.1' = {
+  name: 'keyvaultPrivateDnsZone'
   scope: resourceGroup
   params: {
-    name: 'relecloud.net'
+    name: 'privatelink.vaultcore.azure.net'
     tags: tags
   }
 }
@@ -114,7 +120,7 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.6.2' = {
       {
         name: '${name}-keyvault-pe'
         subnetResourceId: virtualNetwork.outputs.subnetResourceIds[0]
-        privateDnsZoneResourceIds: [privateDnsZone.outputs.resourceId]
+        privateDnsZoneResourceIds: [keyvaultPrivateDnsZone.outputs.resourceId]
       }
     ]
     diagnosticSettings: [
@@ -151,16 +157,45 @@ module roleAssignment 'core/security/role.bicep' = {
   }
 }
 
-module db 'db.bicep' = {
-  name: 'db'
+module cosmosMongoDb 'db/cosmos-mongodb.bicep' = if (DATABASE_RESOURCE == 'cosmos-mongodb') {
+  name: 'cosmosMongoDb'
   scope: resourceGroup
   params: {
     name: 'dbserver'
     location: location
     tags: tags
     prefix: prefix
-    keyVaultName: keyVault.outputs.name
     dbserverDatabaseName: 'relecloud'
+    sqlRoleAssignmentPrincipalId: web.outputs.SERVICE_WEB_IDENTITY_PRINCIPAL_ID
+    keyvaultName: keyVault.outputs.name
+    subnetResourceId: virtualNetwork.outputs.subnetResourceIds[2]
+    applicationSubnetResourceId: virtualNetwork.outputs.subnetResourceIds[1]
+  }
+}
+
+module cosmosPostgres 'db/cosmos-postgres.bicep' = if (DATABASE_RESOURCE == 'cosmos-postgres') {
+  name: 'cosmosPostgres'
+  scope: resourceGroup
+  params: {
+    name: 'dbserver'
+    location: location
+    tags: tags
+    prefix: prefix
+    dbserverDatabaseName: 'relecloud'
+    dbserverPassword: dbserverPassword
+  }
+}
+
+module postgresFlexible 'db/postgres-flexible.bicep' = if (DATABASE_RESOURCE == 'postgres-flexible') {
+  name: 'postgresFlexible'
+  scope: resourceGroup
+  params: {
+    name: 'dbserver'
+    location: location
+    tags: tags
+    prefix: prefix
+    dbserverDatabaseName: 'relecloud'
+    dbserverPassword: dbserverPassword
   }
 }
 
@@ -187,6 +222,7 @@ module web 'web.bicep' = {
     tags: tags
     applicationInsightsName: monitoring.outputs.applicationInsightsName
     keyVaultName: keyVault.outputs.name
+
     appCommandLine: 'entrypoint.sh'
     pythonVersion: '3.12'
     virtualNetworkSubnetId: virtualNetwork.outputs.subnetResourceIds[1]
